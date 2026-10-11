@@ -879,6 +879,7 @@ export class LocalRestApiHandlerService {
           delete changes[field];
         }
 
+        let moveToProjectId: string | undefined;
         if (hasOwn(changes, 'projectId')) {
           const targetProjectId = changes.projectId;
           if (typeof targetProjectId !== 'string' || !targetProjectId.trim()) {
@@ -916,16 +917,26 @@ export class LocalRestApiHandlerService {
                 'Destination project not found or archived',
               );
             }
+            moveToProjectId = targetProjectId;
           }
+        }
+
+        if (moveToProjectId) {
+          // Move like the UI does, so a recurring task's repeat config and
+          // other instances follow it (#10675). update() would only move this
+          // task.
+          delete (changes as Partial<WritableTaskFields>).projectId;
+          await this._featureBridge.moveTaskToProject(taskId, moveToProjectId);
         }
 
         if (Object.keys(changes).length > 0) {
           // Short syntax only parses a title-only change set, so that is the
           // only shape the flag changes; everything else keeps going through
-          // update() and whatever bookkeeping it does.
+          // update() and whatever bookkeeping it does. A title sent with a
+          // project move stays literal, as it did before the move was split off.
           const isTitleOnly =
             Object.keys(changes).length === 1 && hasOwn(changes, 'title');
-          if (patchShortSyntaxFlag.value && isTitleOnly) {
+          if (isTitleOnly && (patchShortSyntaxFlag.value || !!moveToProjectId)) {
             this._store.dispatch(
               TaskSharedActions.updateTask({
                 task: { id: taskId, changes },

@@ -15,6 +15,13 @@ export interface LocalRestApiFeatureBridge {
 
   /** Adds a subtask whose title is kept as is (no short syntax); returns its id. */
   addLiteralSubTask(parentId: string, fields: object): string;
+
+  /**
+   * Moves a top-level task to another project like the UI does, so a
+   * recurring task's repeat config and all its instances move too, without
+   * the confirmation dialog.
+   */
+  moveTaskToProject(taskId: string, projectId: string): Promise<void>;
 }
 
 export const LOCAL_REST_API_FEATURE_BRIDGE =
