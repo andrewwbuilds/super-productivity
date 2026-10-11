@@ -922,9 +922,8 @@ export class LocalRestApiHandlerService {
         }
 
         if (moveToProjectId) {
-          // Move like the UI does, so a recurring task's repeat config and
-          // other instances follow it (#10675). update() would only move this
-          // task.
+          // update() would move only this task; the UI move path also moves a
+          // recurring task's repeat config and other instances (#10675).
           delete (changes as Partial<WritableTaskFields>).projectId;
           await this._featureBridge.moveTaskToProject(taskId, moveToProjectId);
         }
@@ -933,7 +932,7 @@ export class LocalRestApiHandlerService {
           // Short syntax only parses a title-only change set, so that is the
           // only shape the flag changes; everything else keeps going through
           // update() and whatever bookkeeping it does. A title sent with a
-          // project move stays literal, as it did before the move was split off.
+          // project move stays literal, like in any other multi-field PATCH.
           const isTitleOnly =
             Object.keys(changes).length === 1 && hasOwn(changes, 'title');
           if (isTitleOnly && (patchShortSyntaxFlag.value || !!moveToProjectId)) {

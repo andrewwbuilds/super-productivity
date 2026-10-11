@@ -2174,8 +2174,7 @@ describe('LocalRestApiHandlerService', () => {
           expect(dispatchSpy).not.toHaveBeenCalled();
         });
 
-        // Together with projectId the title was never parsed as short syntax;
-        // once the move is split off it must not start being parsed.
+        // Short syntax like "+Other" could move the task right back out.
         it('should keep a title sent with the move literal', async () => {
           await sendRequestAndWait(
             createRequest('PATCH', '/tasks/task-1', {
